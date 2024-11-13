@@ -4,6 +4,8 @@ import io.LecteurDonnees;
 import java.io.FileNotFoundException;
 import java.util.zip.DataFormatException;
 
+import classes.DonneesSimulation;
+
 public class TestLecteurDonnees {
 
     public static void main(String[] args) {
@@ -13,7 +15,8 @@ public class TestLecteurDonnees {
         }
 
         try {
-            LecteurDonnees.lire(args[0]);
+            DonneesSimulation ds = LecteurDonnees.lire(args[0]);
+            System.out.println(ds);
         } catch (FileNotFoundException e) {
             System.out.println("fichier " + args[0] + " inconnu ou illisible");
         } catch (DataFormatException e) {
