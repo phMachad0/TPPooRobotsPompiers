@@ -1,6 +1,7 @@
 package classes;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Carte {
 
@@ -63,6 +64,19 @@ public class Carte {
         }
     }
 
+    public boolean caseIsthme(Case src, Robot robot){
+        List<Double> terrainttransponible = new ArrayList<Double>();
+        Direction[] directions = {Direction.EST, Direction.OUEST, Direction.NORD, Direction.SUD};
+        for (Direction dir : directions) {
+            if (robot.tempsDeplacement(dir) == Double.POSITIVE_INFINITY) {
+                
+            } 
+            else {
+                terrainttransponible.add(1.0);
+            }
+        }
+        return terrainttransponible.size() == 1;
+    }
 
     public int getNbLignes() {
         return this.nbLignes;
