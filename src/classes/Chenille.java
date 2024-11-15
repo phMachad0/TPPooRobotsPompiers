@@ -1,12 +1,12 @@
 package classes;
 
-public class Roues extends Robot {
-    public Roues(Case initialPosition, Carte carte) {
-        super(initialPosition, 5000, 5000, 100, 10*60, 5, 100, carte);
+public class Chenille extends Robot {
+    public Chenille(Case initialPosition, Carte carte) {
+        super(initialPosition, 0, 2000, 60, 5*60, 8, 100, carte);
     }
 
-    public Roues(Case initialPosition, double vitesseLueDansLeFicher, Carte carte) {
-        super(initialPosition, 5000, 5000, vitesseLueDansLeFicher, 10*60, 5, 100, carte);
+    public Chenille(Case initialPosition, double vitesseLueDansLeFicher, Carte carte) {
+        super(initialPosition, 0, 2000, Math.min(vitesseLueDansLeFicher, 80), 5*60, 8, 100, carte);
     }
 
     @Override
@@ -31,12 +31,16 @@ public class Roues extends Robot {
 
     public long tempsDeplacement(Case src, Direction direction) {
         NatureTerrain natureVoisin = this.getCarte().getVoisin(src, direction).getNature();
+        NatureTerrain natureCurrentPosition = src.getNature();
 
-        if (natureVoisin == NatureTerrain.ROCHE || natureVoisin == NatureTerrain.EAU
-                || natureVoisin == NatureTerrain.FORET) {
+        if (natureVoisin == NatureTerrain.EAU || natureVoisin == NatureTerrain.ROCHE) {
             return Long.MAX_VALUE;
         }
 
+        if (natureCurrentPosition == NatureTerrain.FORET) {
+            return Math.round(3600 * ((double)this.carte.getTailleCases() / 1000) / this.getVitesseDefaut()*0.5);
+        }
+        
         return Math.round(3600 * ((double)this.carte.getTailleCases() / 1000) / this.getVitesseDefaut());
     }
 }

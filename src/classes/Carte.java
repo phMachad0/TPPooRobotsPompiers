@@ -23,7 +23,7 @@ public class Carte {
     }
 
     public Case getCase(int lig, int col) {
-        if (lig >=  this.nbLignes || col >= this.nbColonnes ) {
+        if (lig >=  this.nbLignes || col >= this.nbColonnes || lig < 0 || col < 0) {
             return null;
         }
         return this.cases[lig][col];
@@ -68,12 +68,14 @@ public class Carte {
         List<Double> terrainttransponible = new ArrayList<Double>();
         Direction[] directions = {Direction.EST, Direction.OUEST, Direction.NORD, Direction.SUD};
         for (Direction dir : directions) {
-            if (robot.tempsDeplacement(dir) == Double.POSITIVE_INFINITY) {
-                
+            if (this.voisinExiste(robot.getPosition(), dir) != false) {
+                if (robot.tempsDeplacement(robot.getPosition(), dir) == Double.POSITIVE_INFINITY) {
+                    
+                } 
+                else {
+                    terrainttransponible.add(1.0);
+                }
             } 
-            else {
-                terrainttransponible.add(1.0);
-            }
         }
         return terrainttransponible.size() == 1;
     }
@@ -128,6 +130,14 @@ public class Carte {
                 this.cases[i][j] = listCases.get(i*nbColonnes + j);
             }
         }
+    }
+
+    public int getCaseId(Case c) {
+        return c.getLigne() * this.nbColonnes + c.getColonne();
+    }
+
+    public Case getCaseById(int id) {
+        return this.listCases.get(id);
     }
 
     @Override

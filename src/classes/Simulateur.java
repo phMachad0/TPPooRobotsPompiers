@@ -5,15 +5,21 @@ import gui.ImageElement;
 import gui.Rectangle;
 import gui.Simulable;
 import gui.Text;
+import io.LecteurDonnees;
 
 import java.awt.Color;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.zip.DataFormatException;
 
 public class Simulateur implements Simulable {
-    private DonneesSimulation donnees;
+    private DonneesSimulation donnes;
+    private String carte;
+    private ChefPompier chefPompier;
 
-    long dateSimulation = 0;
+    private long dateSimulation = 0;
     List<Evenement> evenements;
     /** L'interface graphique associée */
     private GUISimulator gui;		
@@ -24,22 +30,39 @@ public class Simulateur implements Simulable {
      * dessin et qui enverra les messages via les méthodes héritées de
      * Simulable.
      * @param color la couleur de l'simulateur
+     * @throws DataFormatException 
+     * @throws FileNotFoundException 
      */
-    public Simulateur(GUISimulator gui, DonneesSimulation donnees) {
+    public Simulateur(GUISimulator gui, String carte) throws FileNotFoundException, DataFormatException {
         this.gui = gui;
-        gui.setSimulable(this);				// association a la gui!
-        this.donnees = donnees;
+        gui.setSimulable(this);
+        this.carte = carte;
+        this.donnes = LecteurDonnees.lire(carte);
         this.evenements = new ArrayList<Evenement>();
+        this.chefPompier = new ChefPompier(this, this.getDonnes());
+        chefPompier.planifier();
         draw();
+    }
+
+    public DonneesSimulation getDonnes() {
+        return donnes;
     }
 
     public void incrementeDate() {
         dateSimulation++;
-        for (Evenement e : evenements) {
+        List<Evenement> evenementsAExecuter = new ArrayList<Evenement>();
+        Iterator<Evenement> iterator = evenements.iterator();
+        while (iterator.hasNext()) {
+            Evenement e = iterator.next();
             if (e.getDate() == dateSimulation) {
-                e.execute();
+                evenementsAExecuter.add(e);
+                iterator.remove();
             }
         }
+        for (Evenement e : evenementsAExecuter) {
+            e.execute();
+        }
+
     }
 
     public void ajouteEvenement(Evenement e) {
@@ -50,13 +73,27 @@ public class Simulateur implements Simulable {
         return evenements.isEmpty();
     }
 
+    public long getDate() {
+        return dateSimulation;
+    }
+
     @Override
     public void next() {
+        incrementeDate();
+        System.out.println("Date: " + dateSimulation);
         draw();
+        chefPompier.planifier();
     }
 
     @Override
     public void restart() {
+        try {
+            donnes = LecteurDonnees.lire(this.carte);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (DataFormatException e) {
+            e.printStackTrace();
+        }
         draw();
     }
 
@@ -67,7 +104,7 @@ public class Simulateur implements Simulable {
     private void draw() {
         gui.reset();	// clear the window
 
-        for (Case c : donnees.getCarte().getListCases()) {
+        for (Case c : donnes.getCarte().getListCases()) {
             int x = 50 + c.getColonne() * 50;
             int y = 50 + c.getLigne() * 50;
 
@@ -92,7 +129,7 @@ public class Simulateur implements Simulable {
             }  
         }
 
-        for (Incendie incendie : donnees.getIncendies()) {
+        for (Incendie incendie : donnes.getIncendies()) {
             Case c = incendie.getPosition();
             int x = 25 + c.getColonne() * 50;
             int y = 25 + c.getLigne() * 50;
@@ -100,7 +137,7 @@ public class Simulateur implements Simulable {
             gui.addGraphicalElement(new Text(x+25, y+25, Color.BLACK, Integer.toString(incendie.getLitreNecessaires())));
         }
 
-        for (Robot robot : donnees.getRobots()) {
+        for (Robot robot : donnes.getRobots()) {
             Case c = robot.getPosition();
             int x = 25 + c.getColonne() * 50;
             int y = 25 + c.getLigne() * 50;
@@ -112,8 +149,8 @@ public class Simulateur implements Simulable {
                 case "classes.Roues":
                     gui.addGraphicalElement(new ImageElement(x, y, "imgs/roues.png", 50, 50, null));
                     break;
-                case "classes.Chenilles":
-                    gui.addGraphicalElement(new ImageElement(x, y, "imgs/chenilles.png", 50, 50, null));
+                case "classes.Chenille":
+                    gui.addGraphicalElement(new ImageElement(x, y, "imgs/chenille.png", 50, 50, null));
                     break;
                 case "classes.Pattes":
                     gui.addGraphicalElement(new ImageElement(x, y, "imgs/pattes.png", 50, 50, null));
@@ -121,7 +158,7 @@ public class Simulateur implements Simulable {
                 default:
                     break;
             }
-            System.out.println("Robot en " + c + " de type " + robot.getClass().getName());
+            gui.addGraphicalElement(new Text(x+25, y+25, Color.RED, Integer.toString(robot.getActuelVolumeEau())));
         }
     }
 }

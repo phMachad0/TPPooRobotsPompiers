@@ -23,7 +23,6 @@ public abstract class Robot {
         this.carte = carte;
     }
     
-
     /**
      * Déverse un volume spécifié d'eau du robot.
      * Si le volume spécifié est supérieur au volume d'eau actuel,
@@ -78,12 +77,17 @@ public abstract class Robot {
     }
 
     public int getTempsInterventionUnitaire() {
-        int volumeDeversee = Math.min(this.getVolumeInterventionUnitaire(), this.getActuelVolumeEau());
-        return this.tempsInterventionUnitaire * (volumeDeversee / this.getVolumeInterventionUnitaire());
+        return this.tempsInterventionUnitaire;
     }
-
+    
     public void setTempsInterventionUnitaire(int tempsInterventionUnitaire) {
         this.tempsInterventionUnitaire = tempsInterventionUnitaire;
+    }
+
+    public int getTempsInterventionIncendie(Incendie incendie) {
+        int volumeNecessaire = incendie.getLitreNecessaires();
+        int volumeDeversee = Math.min(Math.min(this.getVolumeInterventionUnitaire(), this.getActuelVolumeEau()), volumeNecessaire);
+        return this.tempsInterventionUnitaire * (volumeDeversee / this.getVolumeInterventionUnitaire());
     }
 
     public double getVitesse() {
@@ -91,7 +95,7 @@ public abstract class Robot {
     }
 
     public int getVolumeInterventionUnitaire() {
-        return volumeInterventionUnitaire;
+        return this.volumeInterventionUnitaire;
     }
 
     public void setVolumeInterventionUnitaire(int volumeInterventionUnitaire) {
@@ -136,10 +140,11 @@ public abstract class Robot {
     /**
      * Calcule le temps nécessaire au robot pour se déplacer dans la direction spécifiée.
      *
+     * @param c la case actuelle du robot
      * @param direction la direction dans laquelle le robot se déplace
      * @return le temps nécessaire au robot pour se déplacer dans la direction spécifiée
      */
-    public abstract double tempsDeplacement(Direction direction);
+    public abstract long tempsDeplacement(Case c, Direction direction);
 
     /**
      * Effectue une intervention unitaire sur un incendie.
@@ -147,5 +152,5 @@ public abstract class Robot {
      * @param incendie L'incendie sur lequel intervenir.
      * @return Le volume d'eau versé sur l'incendie.
      */
-    public abstract int interventionUnitaire(Incendie incendie);
+    public abstract int effectuerInterventionUnitaire(Incendie incendie);
 }

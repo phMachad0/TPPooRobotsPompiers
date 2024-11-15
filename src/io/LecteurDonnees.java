@@ -248,7 +248,7 @@ public class LecteurDonnees {
                     robot = new Roues(c, carte);
                     break;
                 case "CHENILLES":
-                    // robot = new Chenilles(c);
+                    robot = new Chenille(c, carte);
                     break;
                 case "PATTES":
                     robot = new Pattes(c, carte);

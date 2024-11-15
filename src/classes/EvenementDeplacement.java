@@ -6,6 +6,7 @@ public class EvenementDeplacement extends Evenement {
 
     public EvenementDeplacement(long date, Robot robot, Direction direction) {
         super(date);
+        System.out.println("EvenementDeplacement created at " + date); 
         this.robot = robot;
         this.direction = direction;
     }

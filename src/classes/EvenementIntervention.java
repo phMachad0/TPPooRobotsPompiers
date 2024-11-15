@@ -14,18 +14,20 @@ public class EvenementIntervention extends Evenement {
 
     @Override
     public void execute() {
-        int volumeDeversee = this.robot.interventionUnitaire(this.incendie);
-        this.incendie.setLitreNecessaires(volumeDeversee);
+        int volumeDeversee = this.robot.effectuerInterventionUnitaire(this.incendie);
+        System.out.println("Le robot " + this.robot.getClass().getName() + " a deverse " + volumeDeversee
+                + " litres sur l'incendie " + this.incendie);
 
         if (this.robot.resevoirVide()) {
-            // TODO
-            // On ajoute un nouvel evenement deplacement (EvenementDeplacement) vers la case eau la plus proche
-            // On ajoute un nouvel evenement remplissage (EvenementRemplissage) a la fin de l'evenement deplacement
+            System.out.println("Le robot " + this.robot.getClass().getName() + " est vide");
+            this.robot.setOccupe(false);
         } else {
             if (this.incendie.getLitreNecessaires() == 0) {
                 this.robot.setOccupe(false);
             } else {
-                this.simulateur.ajouteEvenement(new EvenementIntervention(this.getDate() + this.robot.getTempsInterventionUnitaire(), this.robot, this.incendie, this.simulateur));
+                this.simulateur.ajouteEvenement(new EvenementIntervention(
+                        this.getDate() + this.robot.getTempsInterventionIncendie(this.incendie), this.robot,
+                        this.incendie, this.simulateur));
             }
         }
     }
