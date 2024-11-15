@@ -6,10 +6,13 @@ import java.util.ArrayList;
 public class PlusCourtChemin {
     
 
-    public static List <Case> Astar(Robot robot, Case arrivee, Carte carte) {
+    public static Tuple <List <Case>, Long> Astar(Robot robot, Case arrivee, Carte carte) {
         Case current = robot.getPosition();
         Case last = new Case(10000, 10000, NatureTerrain.TERRAIN_LIBRE);
         List <Case> path = new ArrayList<Case>();
+        List <Direction> dirs = new ArrayList<Direction>();
+        path.add(current);
+        Long coutchemin = 0L;
         
         while (current != arrivee) {
             List<Double> costs = new ArrayList<Double>();
@@ -32,9 +35,20 @@ public class PlusCourtChemin {
             }
             last = current;
             current = carte.getVoisin(current, bestDirection);
+            dirs.add(bestDirection);
             path.add(current);
         }
-        return path;
+        for (int i = 0; i < path.size(); i++){ {
+            Case c = path.get(i);
+            if(c!= arrivee){}
+                Robot robotTemp = robot;
+                robotTemp.setPosition(c);
+                coutchemin += robotTemp.tempsDeplacement(dirs.get(i));
+            }
+        }
+        
+        Tuple<List<Case>, Long> tuple = new Tuple<>(path, coutchemin);
+        return tuple;
     }
 
     public static double fctf(Case a, Case b, Direction dir, Robot robot){
