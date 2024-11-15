@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.zip.DataFormatException;
 
 import classes.*;
+import enums.NatureTerrain;
 
 
 /**
@@ -98,9 +99,6 @@ public class LecteurDonnees {
         // une ExceptionFormat levee depuis lireCase est remontee telle quelle
     }
 
-
-
-
     /**
      * Lit et affiche les donnees d'une case.
      */
@@ -129,7 +127,6 @@ public class LecteurDonnees {
                     + "Attendu: nature altitude [valeur_specifique]");
         }
     }
-
 
     /**
      * Lit et affiche les donnees des incendies.

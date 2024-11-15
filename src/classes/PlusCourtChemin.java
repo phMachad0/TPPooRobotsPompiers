@@ -2,6 +2,8 @@ package classes;
 
 import java.util.List;
 
+import enums.Direction;
+import enums.NatureTerrain;
 import utils.Tuple;
 
 import java.util.ArrayList;

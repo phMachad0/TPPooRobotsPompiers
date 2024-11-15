@@ -8,27 +8,43 @@ import java.util.PriorityQueue;
 
 import utils.Tuple;
 
+/**
+ * Représente un graphe.
+ */
 public class Graph {
 
 	private final Map<Integer, List<Vertex>> vertices;
 
+	/**
+	 * Constructeur par défaut de la classe Graph.
+	 */
 	public Graph() {
 		this.vertices = new HashMap<Integer, List<Vertex>>();
 	}
 
+	/**
+	 * Ajoute un sommet au graphe.
+	 * 
+	 * @param id     l'identifiant du sommet
+	 * @param vertex la liste des sommets adjacents
+	 */
 	public void addVertex(Integer id, List<Vertex> vertex) {
 		this.vertices.put(id, vertex);
 	}
 
+	/**
+	 * Calcule le plus court chemin entre deux sommets du graphe.
+	 * 
+	 * @param start  le sommet de départ
+	 * @param finish le sommet de destination
+	 * @return un tuple contenant le chemin le plus court et la distance totale
+	 */
 	public Tuple<List<Integer>, Long> getShortestPath(Integer start, Integer finish) {
 		final Map<Integer, Long> distances = new HashMap<Integer, Long>();
 		final Map<Integer, Vertex> previous = new HashMap<Integer, Vertex>();
 		PriorityQueue<Vertex> nodes = new PriorityQueue<Vertex>();
-		//  distances  = (0, MAX, MAX)
-		//  previous  = (null, null, null)
-		//  nodes  = (node1, node2, node3)
 		for (Integer vertex : vertices.keySet()) {
-			if (vertex == start) {
+			if (vertex.equals(start)) {
 				distances.put(vertex, Long.valueOf(0));
 				nodes.add(new Vertex(vertex, 0));
 			} else {
@@ -40,7 +56,7 @@ public class Graph {
 
 		while (!nodes.isEmpty()) {
 			Vertex smallest = nodes.poll();
-			if (smallest.getId() == finish) {
+			if (finish.equals(smallest.getId())) {
 				final List<Integer> path = new ArrayList<Integer>();
 				while (previous.get(smallest.getId()) != null) {
 					path.add(smallest.getId());
@@ -49,7 +65,7 @@ public class Graph {
 				return new Tuple<List<Integer>, Long>(path, distances.get(finish));
 			}
 
-			if (distances.get(smallest.getId()) == Long.MAX_VALUE) {
+			if (distances.get(smallest.getId()).equals(Long.MAX_VALUE)) {
 				break;
 			}
 
@@ -60,8 +76,8 @@ public class Graph {
 					previous.put(neighbor.getId(), smallest);
 
 					forloop: for (Vertex n : nodes) {
-						if (n.getId() == neighbor.getId()) {
-							nodes.
+						if (n.getId().equals(neighbor.getId())) {
+							nodes.remove(n);
 							n.setDistance(alt);
 							nodes.add(n);
 							break forloop;

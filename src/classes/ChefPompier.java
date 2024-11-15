@@ -6,15 +6,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import dijkstra.*;
+import enums.*;
+import evenements.*;
 import utils.Tuple;
-
-  
+/**
+ * La classe ChefPompier représente le chef des pompiers qui planifie les actions des robots pour éteindre les incendies.
+ * 
+ * Elle contient des méthodes pour planifier les déplacements des robots, chercher les incendies et les sources d'eau les plus proches,
+ * ainsi que pour effectuer les interventions et les remplissages des réservoirs des robots.
+ * Elle contient également des attributs pour stocker les incendies traités par les robots et le nombre d'incendies actifs.
+ */
 public class ChefPompier {
     private Simulateur simulateur;
     private DonneesSimulation donnees;
     private Map<Incendie, Robot> incendiesTraites;
     private int incendiesActifs = 0;
 
+    /**
+     * Constructeur de la classe ChefPompier.
+     * @param simulateur Le simulateur utilisé pour la planification.
+     * @param donnees Les données de simulation.
+     */
     public ChefPompier(Simulateur simulateur, DonneesSimulation donnees) {
         this.simulateur = simulateur;
         this.donnees = donnees;
@@ -24,9 +36,12 @@ public class ChefPompier {
         }
     }
 
+    /**
+     * Planifie les actions des robots pour éteindre les incendies.
+     */
     public void planifier() {
         for (Robot robot : this.donnees.getRobots()) {
-            if (robot.resevoirVide() && !robot.isOccupe()) {
+            if (robot.reservoirVide() && !robot.isOccupe()) {
                 for (Incendie incendie : incendiesTraites.keySet()) {
                     if (incendiesTraites.get(incendie) == robot) {
                         incendiesTraites.put(incendie, null);
@@ -46,19 +61,22 @@ public class ChefPompier {
         
         this.incendiesActifs = 0;
         for (Incendie incendie : this.donnees.getIncendies()) {
-            if (incendie.getLitreNecessaires() != 0) {
+            if (incendie.getLitresNecessaires() != 0) {
                 this.incendiesActifs++;
             }
         }
-        
     }
 
+    /**
+     * Cherche l'incendie le plus proche et planifie le déplacement du robot pour l'éteindre.
+     * @param robot Le robot qui va éteindre l'incendie.
+     */
     public void chercherIncendieLePlusProche(Robot robot) {
         Tuple<List<Direction>, Long> chemin = new Tuple<>(new ArrayList<>(), Long.MAX_VALUE);
         Incendie incendiePlusProche = null;
         for (Incendie incendie : this.donnees.getIncendies()) {
             if (incendiesTraites.get(incendie) == null || this.incendiesActifs < this.donnees.getRobots().size()) {
-                if (incendie.getLitreNecessaires() != 0) {
+                if (incendie.getLitresNecessaires() != 0) {
                     Tuple<List<Direction>, Long> tempChemin = chercherCheminLePlusCourt(robot, incendie.getPosition());
                     if (tempChemin.y < chemin.y) {
                         chemin = tempChemin;
@@ -72,25 +90,26 @@ public class ChefPompier {
             planifierEvenementsIntervention(tempDate, robot, incendiePlusProche);
             incendiesTraites.put(incendiePlusProche, robot);
         }
+
+        System.out.println("robot " + robot.getClass().getName() + " va faire le chemin " + chemin.x +" pour aller eteindre l'incendie " + incendiePlusProche);
     }
 
+    /**
+     * Cherche la source d'eau la plus proche et planifie le déplacement du robot pour se remplir.
+     * @param robot Le robot qui va se remplir d'eau.
+     */
     public void chercherEauLaPlusProche(Robot robot) {
         Tuple<List<Direction>, Long> chemin = new Tuple<>(new ArrayList<>(), Long.MAX_VALUE);
         long tempDate;
         if (robot.getClass().getName().equals("classes.Drone")) {
             for (Case c : this.donnees.getCarte().getListCases()) {
                 if (c.getNature() == NatureTerrain.EAU) {
-                    System.out.println(c);
                     Tuple<List<Direction>, Long> tempChemin = chercherCheminLePlusCourt(robot, c);
-                    System.out.println(tempChemin.x);
                     if (tempChemin.y < chemin.y) {
                         chemin = tempChemin;
                     }
                 }
             }
-
-            System.out.println("robot " + robot.getClass().getName() + " va faire le chemin " + chemin.x +" pour aller chercher de l'eau");
-            tempDate = planifierEvenementsDeplacement(chemin.x, this.simulateur.getDate(), robot);
         } else {
             for (Case c : this.donnees.getCarte().getListCases()) {
                 if (c.getNature() == NatureTerrain.EAU) {
@@ -106,13 +125,15 @@ public class ChefPompier {
                     }
                 }
             }
-
-            System.out.println("robot " + robot.getClass().getName() + " va faire le chemin " + chemin.x +" pour aller chercher de l'eau");
-            tempDate = planifierEvenementsDeplacement(chemin.x, this.simulateur.getDate(), robot);
         }
+        tempDate = planifierEvenementsDeplacement(chemin.x, this.simulateur.getDate(), robot);
         planifierEvenementsRemplissage(tempDate, robot);
     }
 
+    /**
+     * Cherche le robot le plus proche de l'incendie et planifie son déplacement pour intervenir.
+     * @param incendie L'incendie à éteindre.
+     */
     public void chercherRobotLePlusProche(Incendie incendie) {
         Tuple<List<Direction>, Long> chemin = new Tuple<>(new ArrayList<>(), Long.MAX_VALUE);
         Robot robotPlusProche = null;
@@ -125,14 +146,19 @@ public class ChefPompier {
                 }
             }
         }
-        if (robotPlusProche == null) {
-            return;
+        if (robotPlusProche != null) {
+            robotPlusProche.setOccupe(true);
+            long tempDate = planifierEvenementsDeplacement(chemin.x, this.simulateur.getDate(), robotPlusProche);
+            planifierEvenementsIntervention(tempDate, robotPlusProche, incendie);
         }
-        robotPlusProche.setOccupe(true);
-        long tempDate = planifierEvenementsDeplacement(chemin.x, this.simulateur.getDate(), robotPlusProche);
-        planifierEvenementsIntervention(tempDate, robotPlusProche, incendie);
     }
 
+    /**
+     * Cherche le chemin le plus court entre la position du robot et une case de destination.
+     * @param robot Le robot qui se déplace.
+     * @param dest La case de destination.
+     * @return Un tuple contenant le chemin le plus court sous forme de liste de directions et la durée du chemin.
+     */
     public Tuple<List<Direction>, Long> chercherCheminLePlusCourt(Robot robot, Case dest) {
         Graph g = new Graph();
         Case src = robot.getPosition();
@@ -143,7 +169,6 @@ public class ChefPompier {
                 if (voisin != null) {
                     long temps = robot.tempsDeplacement(c, direction);
                     if (temps != Long.MAX_VALUE) {
-                        // System.out.println("temps deplacement de " + c + " vers " + voisin + " = " + temps);
                         voisins.add(new Vertex(this.donnees.getCarte().getCaseId(voisin), temps));
                     }
                 }
@@ -151,9 +176,7 @@ public class ChefPompier {
             g.addVertex(this.donnees.getCarte().getCaseId(c), voisins);
         }
 
-
         Tuple<List<Integer>, Long> shortestPathIntegers = g.getShortestPath(this.donnees.getCarte().getCaseId(src), this.donnees.getCarte().getCaseId(dest));
-        System.out.println("Chemin le plus court de " + src + " vers " + dest + " = " + shortestPathIntegers.x);
         List<Direction> shortestPath = new ArrayList<>();
         Case c = src;
         for (int i = shortestPathIntegers.x.size() - 1; i >= 0; i--) {
@@ -166,27 +189,16 @@ public class ChefPompier {
                 }
             }
         }
-        // System.out.println("Chemin le plus court de " + src + " vers " + dest + " = " + shortestPath);
         return new Tuple<>(shortestPath, shortestPathIntegers.y);
     }
 
-    public Tuple<List<Direction>, Long> chercherCheminLePlusCourtAstar(Robot robot, Case dest) {
-        Tuple<List<Case>, Long> cases = PlusCourtChemin.Astar(robot, dest, this.donnees.getCarte());
-        List<Direction> shortestPath = new ArrayList<>();
-        Case c = robot.getPosition();
-        for (Case case1 : cases.x) {
-            for (Direction direction : Direction.values()) {
-                Case voisin = this.donnees.getCarte().getVoisin(c, direction);
-                if (voisin != null && voisin == case1) {
-                    shortestPath.add(direction);
-                    c = voisin;
-                    break;
-                }
-            }
-        }
-        return new Tuple<>(shortestPath, cases.y);
-    }
-
+    /**
+     * Planifie les événements de déplacement du robot.
+     * @param shortestPath Le chemin à suivre sous forme de liste de directions.
+     * @param initialDate La date initiale de planification.
+     * @param robot Le robot qui se déplace.
+     * @return La date finale de planification.
+     */
     public long planifierEvenementsDeplacement(List<Direction> shortestPath, long initialDate, Robot robot) {
         Case c = robot.getPosition();
         long tempDate = initialDate;
@@ -198,10 +210,21 @@ public class ChefPompier {
         return tempDate;
     }
 
+    /**
+     * Planifie l'événement d'intervention du robot sur l'incendie.
+     * @param initialDate La date initiale de planification.
+     * @param robot Le robot qui intervient.
+     * @param incendie L'incendie à éteindre.
+     */
     public void planifierEvenementsIntervention(long initialDate, Robot robot, Incendie incendie) {
         simulateur.ajouteEvenement(new EvenementIntervention(initialDate + robot.getTempsInterventionIncendie(incendie), robot, incendie, simulateur));
     }
 
+    /**
+     * Planifie l'événement de remplissage du réservoir du robot.
+     * @param initialDate La date initiale de planification.
+     * @param robot Le robot qui se remplit d'eau.
+     */
     public void planifierEvenementsRemplissage(long initialDate, Robot robot) {
         simulateur.ajouteEvenement(new EvenementRemplissage(initialDate + robot.getTempsDeRemplissage(), robot));
     }

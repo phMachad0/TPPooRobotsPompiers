@@ -1,4 +1,8 @@
-package classes;
+package enums;
+
+/**
+ * Enumération des différents types de terrain.
+ */
 public enum NatureTerrain {
     EAU,
     FORET,
