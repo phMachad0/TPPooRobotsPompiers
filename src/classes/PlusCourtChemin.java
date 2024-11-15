@@ -23,7 +23,6 @@ public class PlusCourtChemin {
                 }
             }
 
-            
             int minIndex = costs.indexOf(costs.stream().min(Double::compare).orElse(Double.POSITIVE_INFINITY));
             Direction bestDirection = directions[minIndex];
             if (!carte.caseIsthme(current, robot) && carte.getVoisin(current, bestDirection) == last){
